@@ -4,8 +4,12 @@ import json
 import time
 import pandas as pd
 import sqlite3
+import os
 
 API_BASE_URL = 'https://api.devmka.online/products'
+DB_NAME = 'produtos.db'
+CSV_NAME = 'produtos.csv'
+CACHE_FILE = 'dados_brutos.json'
 
 def extrair_dados():
     print('Iniciando extração de dados...')
@@ -49,12 +53,82 @@ def extrair_dados():
     print(f'Extração concluída. {len(todos_os_produtos)} produtos encontrados.')
     return todos_os_produtos
 
+def tratar_dados(dados_brutos:list):
+    print(f'Tratamento de dados...')
+    if not dados_brutos:
+        print(f'Nenhum dado para tratar')
+        return pd.DataFrame()
+
+    df = pd.DataFrame(dados_brutos)
+
+    df['category'] = df['category'].apply(lambda x: x['name'])
+    df['title'] = df['title'].str.upper()
+    df['brand'] = df['brand'].str.upper()
+    df['title'] = df['title'].apply(lambda x: ' '.join(x.split(' ')[:-1]))
+    df.drop_duplicates(subset=['id'], inplace=True)
+
+    # Parte de especificações
+    df['gross_weight'] = df['specifications'].str.extract(r'Peso Bruto: (\d+\.?\d*)kg').astype(float)
+    df[['width', 'length']] = df['specifications'].str.extract(r'Dimensões \(LxC\): (\d+\.?\d*)cm x (\d+\.?\d*)cm').astype(float)
+    df['material'] = df['specifications'].str.extract(r'Material Principal: ([^|]+)', expand=False).str.strip()
+    df['warranty'] = df['specifications'].str.extract(r'Garantia do Fabricante: ([^|$]+)', expand=False).str.strip()
+
+    print(f'DataFrame iniciado. Informações: ')
+    print(df.info())
+
+    print(f'\n5 primeiras linhas: ')
+    print(df.head())
+
+    print(df[['title', 'gross_weight', 'width', 'length', 'material', 'warranty']].head())
+    return df
+
+def carregar_dados():
+    ...
+
 def main():
     try:
-        ...
+        print(f'app funcionando!')
     except Exception as e:
         print(f'')
 
 if __name__ == '__main__':
-    # main()
-    extrair_dados()
+    # 
+    # print('DEBUG: Script Pipeline ETL')
+    # # main()
+    # produtos = extrair_dados()
+
+    # df_produtos = tratar_dados(produtos)
+    # -------------------------------------
+
+    print('Script Pipeline ETL')
+    produtos = [] # Inicializa a lista
+
+    # 1. Lógica de Extração com Cache
+    if os.path.exists(CACHE_FILE):
+        print('Encontrado cache local. Carregando dados do arquivo...')
+        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+            produtos = json.load(f)
+        print(f'Dados carregados do cache. Total de {len(produtos)} produtos.')
+    else:
+        print('Cache não encontrado. Iniciando extração da API...')
+        # 1. Extração (demorada)
+        produtos = extrair_dados()
+        
+        # Salva os dados no cache para a próxima vez
+        if produtos:
+            print(f'Salvando dados extraídos em {CACHE_FILE}...')
+            with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(produtos, f, ensure_ascii=False, indent=2)
+            print('Cache salvo com sucesso.')
+    
+    # Se a extração (ou cache) funcionou, continua
+    if produtos:
+        # 2. Tratamento
+        df_produtos = tratar_dados(produtos)
+        
+        # 3. Carga
+        # carregar_dados(df_produtos)
+    else:
+        print('Nenhum produto encontrado para processar.')
+        
+    print('Pipeline ETL concluído.')
