@@ -54,7 +54,7 @@ def extrair_dados():
     return todos_os_produtos
 
 def tratar_dados(dados_brutos:list):
-    print(f'Tratamento de dados...')
+    print(f'Tratando os dados...')
     if not dados_brutos:
         print(f'Nenhum dado para tratar')
         return pd.DataFrame()
@@ -80,10 +80,50 @@ def tratar_dados(dados_brutos:list):
     print(df.head())
 
     print(df[['title', 'gross_weight', 'width', 'length', 'material', 'warranty']].head())
-    return df
+    
+    df_final = df.rename(columns={
+        'title':'name',
+        'product_url':'product_url',
+        'part_number': 'part_number',
+        'brand': 'brand_name',
+        'category': 'category',
+        'gross_weight': 'gross_weight',
+        'width': 'width',
+        'length': 'length',
+        'warranty': 'warranty',
+        'material': 'material',
+        'thumbnail': 'photo_url',
+        'stock_quantity': 'stock_quantity'
+    })
 
-def carregar_dados():
-    ...
+    colunas_finais = [
+        'name', 'product_url', 'part_number', 'brand_name', 'category',
+        'gross_weight', 'width', 'length', 'warranty', 'material', 
+        'photo_url', 'stock_quantity', 'price' 
+    ]
+
+    df_final = df_final[colunas_finais]
+
+    print("DataFrame final limpo e pronto para carga.")
+    print(df_final.info())
+    return df_final
+
+def carregar_dados(df: pd.DataFrame):
+    print(f'Carga dos dados...')
+
+    if df.empty:
+        print('Nenhum dado para carregar')
+        return
+    
+    try:
+        connection = sqlite3.connect(DB_NAME)
+        df.to_sql('produtos', connection, if_exists='replace', index=False)
+        
+        print(f'Dados carregados em {DB_NAME}')
+        connection.close()
+        
+    except Exception as e:
+        print(f'Erro ao salvar: {e}')
 
 def main():
     try:
