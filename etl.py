@@ -132,23 +132,16 @@ def carregar_dados(df: pd.DataFrame):
         print(f"Erro ao salvar no CSV: {e}")
 
 def main():
-    try:
-        print(f'app funcionando!')
-    except Exception as e:
-        print(f'')
-
-if __name__ == '__main__':
     print('Script Pipeline ETL')
     produtos = [] 
 
     if os.path.exists(CACHE_FILE):
-        print('Encontrado cache local. Carregando dados do arquivo...')
+        print('Encontrado cache local. Carregando dados...')
         with open(CACHE_FILE, 'r', encoding='utf-8') as f:
             produtos = json.load(f)
-        print(f'Dados carregados do cache. Total de {len(produtos)} produtos.')
+        print(f'{len(produtos)} produtos carregados.')
     else:
         print('Cache não encontrado. Iniciando extração da API...')
-        
         produtos = extrair_dados()
         
         if produtos:
@@ -160,8 +153,13 @@ if __name__ == '__main__':
     if produtos:
         df_produtos = tratar_dados(produtos)
         carregar_dados(df_produtos)
-
     else:
         print('Nenhum produto encontrado para processar.')
-        
+    
     print('Pipeline ETL concluído.')
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:
+        print(f'Erro no pipeline: {e}')
