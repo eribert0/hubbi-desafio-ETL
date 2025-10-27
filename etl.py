@@ -41,7 +41,7 @@ def extrair_dados():
             produtos_da_pagina = resposta_loop.json()['data']
             todos_os_produtos.extend(produtos_da_pagina)
 
-            time.sleep(0.1)
+            time.sleep(0.1) # prevenção de rate limiting
 
     except requests.RequestException as e:
         print(f'Erro ao acessar API na página: {e}')
@@ -125,6 +125,12 @@ def carregar_dados(df: pd.DataFrame):
     except Exception as e:
         print(f'Erro ao salvar: {e}')
 
+    try:
+        df.to_csv(CSV_NAME, index=False, encoding='utf-8')
+        print(f"Dados carregados com sucesso em '{CSV_NAME}'")
+    except Exception as e:
+        print(f"Erro ao salvar no CSV: {e}")
+
 def main():
     try:
         print(f'app funcionando!')
@@ -132,18 +138,9 @@ def main():
         print(f'')
 
 if __name__ == '__main__':
-    # 
-    # print('DEBUG: Script Pipeline ETL')
-    # # main()
-    # produtos = extrair_dados()
-
-    # df_produtos = tratar_dados(produtos)
-    # -------------------------------------
-
     print('Script Pipeline ETL')
-    produtos = [] # Inicializa a lista
+    produtos = [] 
 
-    # 1. Lógica de Extração com Cache
     if os.path.exists(CACHE_FILE):
         print('Encontrado cache local. Carregando dados do arquivo...')
         with open(CACHE_FILE, 'r', encoding='utf-8') as f:
@@ -151,23 +148,19 @@ if __name__ == '__main__':
         print(f'Dados carregados do cache. Total de {len(produtos)} produtos.')
     else:
         print('Cache não encontrado. Iniciando extração da API...')
-        # 1. Extração (demorada)
+        
         produtos = extrair_dados()
         
-        # Salva os dados no cache para a próxima vez
         if produtos:
             print(f'Salvando dados extraídos em {CACHE_FILE}...')
             with open(CACHE_FILE, 'w', encoding='utf-8') as f:
                 json.dump(produtos, f, ensure_ascii=False, indent=2)
             print('Cache salvo com sucesso.')
     
-    # Se a extração (ou cache) funcionou, continua
     if produtos:
-        # 2. Tratamento
         df_produtos = tratar_dados(produtos)
-        
-        # 3. Carga
-        # carregar_dados(df_produtos)
+        carregar_dados(df_produtos)
+
     else:
         print('Nenhum produto encontrado para processar.')
         
