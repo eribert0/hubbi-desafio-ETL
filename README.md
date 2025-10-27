@@ -229,7 +229,7 @@ ORDER BY
 LIMIT 5;
  ```
  
-**Resultado (Gráfico):** **`![Resultado da Consulta Top 5 Marcas](charts/top_brands.png)`**
+**Resultado (Gráfico):** ![Resultado da Consulta Top 5 Marcas](charts/top_brands.png)
 
 **Insight:** As marcas **Monroe, SKF, ACDelco, Brembo, e NGK** dominam o catálogo, cada uma com mais de 1.400 produtos listados, indicando uma distribuição de portfólio bem equilibrada entre as principais fornecedoras.
 
@@ -247,7 +247,7 @@ GROUP BY
 ORDER BY 
     average_price DESC;
 ```
-**Resultado (Gráfico):** **`![Resultado da Consulta Preço Médio por Categoria](charts/avg_price_category.png)`**
+**Resultado (Gráfico):** ![Resultado da Consulta Preço Médio por Categoria](charts/avg_price_category.png)
 
 **Insight:** A análise mostra que, embora todas as categorias tenham um preço médio similar (na faixa de R$ 740 a R$ 790), **"Sistema Elétrico"** e **"Motor"** são as categorias com o ticket médio ligeiramente mais alto.
 
