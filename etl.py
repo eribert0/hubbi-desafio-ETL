@@ -145,7 +145,7 @@ def main():
         produtos = extrair_dados()
         
         if produtos:
-            print(f'Salvando dados extraídos em {CACHE_FILE}...')
+            print(f'Salvando dados em {CACHE_FILE}...')
             with open(CACHE_FILE, 'w', encoding='utf-8') as f:
                 json.dump(produtos, f, ensure_ascii=False, indent=2)
             print('Cache salvo com sucesso.')
